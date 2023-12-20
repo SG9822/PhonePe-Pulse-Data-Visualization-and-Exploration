@@ -31,7 +31,7 @@ def basicInsights():
     with col1:
         selected = st.selectbox("Select State", states_list, index=states_list.index('Tamil Nadu'))
     with col2:
-        table = st.selectbox("Select State", ['Transaction', 'User'])
+        table = st.selectbox("Select Table", ['Transaction', 'User'])
     with col3:
         year_selected = st.selectbox("Selected Year", [2018, 2019, 2020, 2021, 2022, 2023])
     with col4:
