@@ -1,7 +1,5 @@
 # PhonePe Pulse Data Visualization and Exploration
 
-## Overview
-
 PhonePe Pulse Data Visualization and Exploration is a Python-based project that utilizes MySQL for data storage and leverages various libraries such as pymysql, pandas, streamlit, plotly, and geopandas for data extraction, manipulation, and visualization. The project aims to explore and visualize transaction and user data from PhonePe Pulse.
 
 ## Important Notes
