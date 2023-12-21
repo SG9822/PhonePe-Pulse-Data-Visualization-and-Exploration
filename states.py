@@ -156,7 +156,6 @@ def stateData():
             print('merged1')
             ph_geo_gdf = gpd.GeoDataFrame(ph_geo, geometry='geometry')
             ph_geo_gdf['District_Name'] = ph_geo_gdf['District_Name'].str.title()
-            ph_geo_gdf['Transaction Amounts'] = ph_geo_gdf['Transaction Amount'].apply(lambda x: '₹ {:,.0f}'.format(x))
 
             st.write(f'## :blue[{states} Map for {years} Quarter {quarters}]')
 
@@ -168,20 +167,19 @@ def stateData():
                 color_continuous_scale=px.colors.diverging.RdYlGn,
                 range_color=(0, ph_geo_gdf[column[4]].max()),
                 mapbox_style="carto-positron",
-                zoom=5.5,
+                zoom=5.75,
                 center={"lat": states_dict[states][1], "lon": states_dict[states][2]},
                 opacity=0.5,
                 hover_name='District_Name',
-                hover_data=['Transaction Amounts']
 
             )
 
-            # fig.update_traces(
-            #     hovertemplate=("<b>%{hovertext}</b><br><br>"
-            #                    f"<b>Transaction Count</b><br>%{{z:,.0f}}<br><br><b>Transaction Amount</b><br>₹%{{customdata:,.0f}}"),
-            #     hovertext=phonepe_df['District_Name'].str.title(),
-            #     customdata=phonepe_df['Transaction Amount'],
-            # )
+            fig.update_traces(
+                hovertemplate=("<b>%{hovertext}</b><br><br>"
+                               f"<b>Transaction Count</b><br>%{{z:,.0f}}<br><br><b>Transaction Amount</b><br>₹%{{customdata:,.0f}}"),
+                hovertext=ph_geo_gdf['District_Name'].str.title(),
+                customdata=ph_geo_gdf['Transaction Amount'],
+            )
 
             fig.update_geos(fitbounds="locations", visible=False)
             fig.update_layout(
@@ -218,7 +216,6 @@ def stateData():
             print('merged2')
             ph_geo_gdf = gpd.GeoDataFrame(ph_geo, geometry='geometry')
             ph_geo_gdf['District_Name'] = ph_geo_gdf['District_Name'].str.title()
-            ph_geo_gdf['App Opens'] = ph_geo_gdf['App Open'].apply(lambda x: '{:,.0f}'.format(x))
 
             st.write(f'## :blue[{states} Map for {years} Quarter {quarters}]')
 
@@ -230,19 +227,18 @@ def stateData():
                 color_continuous_scale='edge',
                 range_color=(0, ph_geo_gdf['Registration Counts'].max()),
                 mapbox_style="carto-positron",
-                zoom=6,
+                zoom=5.75,
                 center={"lat": states_dict[states][1], "lon": states_dict[states][2]},
                 opacity=0.5,
                 # labels={'reg': 'Registration Counts'},
                 hover_name='District_Name',
-                hover_data=['App Opens'],
             )
 
-            # fig.update_traces(
-            #     hovertemplate="<b>%{hovertext}</b><br><br><b>Registered Users</b><br>%{z:,.0f}<br><br><b>App Opens</b><br>%{customdata:,.0f}",
-            #     hovertext=phonepe_df['District_Name'].str.title(),
-            #     customdata=phonepe_df['App Open']
-            # )
+            fig.update_traces(
+                hovertemplate="<b>%{hovertext}</b><br><br><b>Registered Users</b><br>%{z:,.0f}<br><br><b>App Opens</b><br>%{customdata:,.0f}",
+                hovertext=ph_geo_gdf['District_Name'].str.title(),
+                customdata=ph_geo_gdf['App Open']
+            )
 
             fig.update_geos(fitbounds="locations", visible=False)
             fig.update_layout(
