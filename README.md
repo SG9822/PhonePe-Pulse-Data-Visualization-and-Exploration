@@ -8,7 +8,6 @@ PhonePe Pulse Data Visualization and Exploration is a Python-based project that 
 - App Open count data is available from 2018 1st quarter to 2019 1st quarter.
 
 ## Table of Contents
-- [Overview](#overview)
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
 - [Important Notes](#important-notes)
