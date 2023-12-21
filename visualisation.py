@@ -25,13 +25,14 @@ state_codes = [
     'MP', 'MH', 'MN', 'ML', 'MZ', 'NL', 'OR', 'PY', 'PB', 'RJ', 'SK', 'TN', 'TS', 'TR', 'UP', 'UK', 'WB'
 ]
 
+
 def basicInsights():
     st.write("### :blue[Basic Insights]")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         selected = st.selectbox("Select State", states_list, index=states_list.index('Tamil Nadu'))
     with col2:
-        table = st.selectbox("Select Table", ['Transaction', 'User'])
+        table = st.selectbox("Select State", ['Transaction', 'User'])
     with col3:
         year_selected = st.selectbox("Selected Year", [2018, 2019, 2020, 2021, 2022, 2023])
     with col4:
@@ -162,42 +163,163 @@ def basicInsights():
 
 def performance():
     state_df = pd.DataFrame({'State Name': states_list, 'State Code': state_codes})
-    df = pd.read_sql_query(
-        'select a1.state, a1.year, sum(transacion_count) `Transaction Count`, sum(transacion_amount) '
-        '`Transaction Amount`, sum(registered_user) `Registered User` from aggregated_transaction a1 '
-        'join aggregated_user a2 on a1.State = a2.state and a1.year = a2.year and a1.Quater = '
-        'a2.Quater group by 1, 2', engine)
+    df = pd.DataFrame()
+
+    st.write("### :blue[Performance over the years]")
+    tab = st.selectbox('Select Overall Changes', ['Transaction Count', 'Transaction Amount', 'Registered User'])
+    if tab == 'Transaction Count' or tab == 'Transaction Amount':
+        df = pd.read_sql_query('select state, year, sum(transacion_count) `Transaction Count`, sum(transacion_amount) '
+                               '`Transaction Amount` from aggregated_transaction group by 1, 2', engine)
+    elif tab == 'Registered User':
+        df = pd.read_sql_query('select state, year, sum(registered_user) `Registered User` from aggregated_user group '
+                               'by 1, 2', engine)
 
     df['state'] = df['state'].str.replace('-', ' ').str.title()
 
     state = df.merge(state_df, left_on='state', right_on='State Name', how='left')
     state['State Name'] = state['State Code'] + '-' + state['State Name']
 
-    st.write("### :blue[Performance over the years]")
-    tab = st.selectbox('Select Overall Changes', ['Transaction Count', 'Transaction Amount', 'Registered User'])
+    fig = px.bar(
+        state,
+        x="State Code",
+        y=f"{tab}",
+        animation_frame="year",
+        color="State Name",
+        hover_name="state",
+        range_y=[0, state[f'{tab}'].max()],
+    )
+
+    fig.update_layout(
+        autosize=False,
+        width=550,
+        height=500,
+        margin=dict(l=0, r=0, b=0, t=50)
+    )
 
     st.plotly_chart(
-        px.bar(
-            state,
-            x="State Code",
-            y=f"{tab}",
-            animation_frame="year",
-            color="State Name",
-            hover_name="state",
-            range_y=[0, state[f'{tab}'].max()],
-        ).update_layout(
-            autosize=False,
-            width=500,
-            height=500,
-            margin=dict(l=0, r=0, b=0, t=50)
-        ),
-        use_container_width=True
+        fig,
+        use_container_width=True  # Allow the chart to expand to the width of its container
     )
+
+
+def top():
+    st.title(":blue[Top Stars of the Years]")
+    select = st.selectbox("Select One", ['Transaction Count', 'Transaction Amount', 'Registered User', 'Payment Type'])
+    year = st.select_slider('Select a Year', options=[2018, 2019, 2020, 2021, 2022, 2023])
+
+    if select == 'Transaction Count':
+        df = pd.read_sql_query(
+            f'select state, year, sum(transacion_count) `Transaction Count` from aggregated_transaction where year = {year} group by 1, 2 order by `Transaction Count` desc limit 10',
+            engine)
+        df['state'] = df['state'].str.replace('-', ' ').str.title()
+        d_df = pd.read_sql_query(
+            f'select district_name, year, sum(transacion_count) `Transaction Count` from map_transaction where year = {year} group by 1, 2 order by `Transaction Count` desc limit 10',
+            engine)
+        d_df['district_name'] = d_df['district_name'].str.title()
+        p_df = pd.read_sql_query(
+            f'select pin_code, year, sum(transacion_count) `Transaction Count` from top_transaction_pin where year = {year} group by 1, 2 order by `Transaction Count`desc limit 10',
+            engine)
+
+        st.subheader(f':blue[Top {df["state"].count()} States of the year {year}]')
+        col1, col2 = st.columns([1, 3])
+        with col2:
+            st.plotly_chart(px.bar(df, x='state', y='Transaction Count', color='state', text='Transaction Count'))
+        st.divider()
+        st.subheader(f':blue[Top {d_df["district_name"].count()} Districts of the year {year}]')
+        col3, col4 = st.columns([1, 3])
+        with col4:
+            st.plotly_chart(
+                px.bar(d_df, x='district_name', y='Transaction Count', color='district_name', text='Transaction Count'))
+        st.divider()
+        st.subheader(f':blue[Top 10 Pincode of the year {year}]')
+        col5, col6 = st.columns([1, 3])
+        with col6:
+            fig = px.pie(p_df,  values='Transaction Count', names='pin_code',
+                                       color_discrete_sequence=px.colors.diverging.RdYlGn)
+            st.plotly_chart(fig)
+
+
+    elif select == 'Transaction Amount':
+        df = pd.read_sql_query(f'select state, year, '
+                               f'sum(transacion_amount) `Transaction Amount` from aggregated_transaction where year = {year} group by 1, 2 order by `Transaction Amount` desc limit 10',
+                               engine)
+        df['state'] = df['state'].str.replace('-', ' ').str.title()
+        d_df = pd.read_sql_query(
+            f'select district_name, year, sum(transacion_amount) `Transaction Amount` from map_transaction where year = {year} group by 1, 2 order by `Transaction Amount` desc limit 10',
+            engine)
+        d_df['district_name'] = d_df['district_name'].str.title()
+        p_df = pd.read_sql_query(
+            f'select pin_code, year, sum(transacion_amount) `Transaction Amount` from top_transaction_pin where year = {year} group by 1, 2 order by `Transaction Amount` desc limit 10',
+            engine)
+
+        st.subheader(f':blue[Top {df["state"].count()} States of the year {year}]')
+        col1, col2 = st.columns([1, 3])
+        with col2:
+            st.plotly_chart(px.bar(df, x='state', y='Transaction Amount', color='state', text='Transaction Amount'))
+        st.divider()
+
+        st.subheader(f':blue[Top {d_df["district_name"].count()} Districts of the year {year}]')
+        col3, col4 = st.columns([1, 3])
+        with col4:
+            st.plotly_chart(px.bar(d_df, x='district_name', y='Transaction Amount', color='district_name',
+                                   text='Transaction Amount'))
+        st.divider()
+        st.subheader(f':blue[Top 10 Pincode of the year {year}]')
+        col5, col6 = st.columns([1, 3])
+        with col6:
+            fig = px.pie(p_df,  values='Transaction Amount', names='pin_code',
+                                       color_discrete_sequence=px.colors.diverging.RdYlGn)
+            st.plotly_chart(fig)
+
+    elif select == 'Registered User':
+        df = pd.read_sql_query(
+            f'select state, year, sum(registered_user) `Registered User` from aggregated_user where year = {year} group by 1, 2 order by `Registered User` desc limit 10',
+            engine)
+        df['state'] = df['state'].str.replace('-', ' ').str.title()
+        d_df = pd.read_sql_query(
+            f'select district_name, year, sum(registered_user) `Registered User` from map_users where year = {year} group by 1, 2 order by `Registered User` desc limit 10',
+            engine)
+        d_df['district_name'] = d_df['district_name'].str.title()
+        p_df = pd.read_sql_query(
+            f'select pin_code, year, sum(registered_user) `Registered User` from pincode_wise_users where year = {year} group by 1, 2 order by `Registered User` desc limit 10',
+            engine)
+
+        st.subheader(f':blue[Top {df["state"].count()} States of the {year}]')
+        col1, col2 = st.columns([1, 3])
+        with col2:
+            st.plotly_chart(px.bar(df, x='state', y='Registered User', color='state', text='Registered User'))
+        st.divider()
+        st.subheader(f':blue[Top {d_df["district_name"].count()} Districts of the year {year}]')
+        col3, col4 = st.columns([1, 3])
+        with col4:
+            st.plotly_chart(
+                px.bar(d_df, x='district_name', y='Registered User', color='district_name', text='Registered User'))
+        st.divider()
+        st.subheader(f':blue[Top 10 Pincode of the year {year}]')
+        col5, col6 = st.columns([1, 3])
+        with col6:
+            fig = px.pie(p_df,  values='Registered User', names='pin_code',
+                                       color_discrete_sequence=px.colors.diverging.RdYlGn)
+            st.plotly_chart(fig)
+
+    elif select == 'Payment Type':
+        df = pd.read_sql_query(
+            f'select transacion_type `Transaction Type`, year, sum(Transacion_count) `Transaction Count`, sum(Transacion_amount) `Transacion Amount` from aggregated_transaction where year ={year} group by 1, 2',
+            engine)
+
+        st.subheader(f':blue[Transaction Types]')
+        col1, col2 = st.columns([1, 3])
+        with col2:
+            st.plotly_chart(px.bar(df, x='Transaction Type', y='Transaction Count', color='Transaction Type',
+                                   text='Transaction Count'))
+
+
 def visualisation():
-    tab1, tab2 = st.tabs(['Basic', 'Performance'])
+    tab1, tab2, tab3 = st.tabs(['📊Basic', '⏳Performance', '📈Top Stars'])
     with tab1:
         basicInsights()
     with tab2:
         performance()
-
+    with tab3:
+        top()
 
