@@ -8,7 +8,7 @@ from urllib.parse import quote
 import sqlite3
 
 user = 'root'
-password = quote('MySQL@123')
+password = quote('your MySQL Password')
 host = '127.0.0.1'
 port = 3306
 database = 'Phonepe'
