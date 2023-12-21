@@ -6,12 +6,12 @@ from states import states_list, states_dict
 import pandas as pd
 import plotly.express as px
 
-myconnection = pymysql.connect(host='127.0.0.1', user='root', passwd='MySQL@123', database='Phonepe')
+myconnection = pymysql.connect(host='127.0.0.1', user='root', passwd='your MySQL Password', database='Phonepe')
 cur = myconnection.cursor()
 cur.execute("use Phonepe")
 
 user = 'root'
-password = quote('MySQL@123')
+password = quote('your MySQL Password')
 host = '127.0.0.1'
 port = 3306
 database = 'Phonepe'
