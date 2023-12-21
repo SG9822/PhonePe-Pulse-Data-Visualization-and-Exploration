@@ -6,6 +6,7 @@ PhonePe Pulse Data Visualization and Exploration is a Python-based project that 
 
 - Data for 2023 Quarter 4 is not available.
 - App Open count data is available from 2018 1st quarter to 2019 1st quarter.
+- Some state-district data is wrong please help with that. 
 
 ## Table of Contents
 - [Technologies Used](#technologies-used)
